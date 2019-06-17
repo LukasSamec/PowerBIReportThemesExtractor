@@ -1,5 +1,8 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using PowerBIReportThemesExtractor.Extractor;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +26,15 @@ namespace PowerBIReportThemesExtractor
         public MainWindow()
         {
             InitializeComponent();
+            
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.ShowDialog();
+            //dialog.Filter = "Power BI file (*.pbix)";
+            ThemeExtractor extractor = new ThemeExtractor(dialog.FileName);
         }
     }
 }
