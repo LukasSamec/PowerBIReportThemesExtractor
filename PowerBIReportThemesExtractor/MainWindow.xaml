@@ -7,7 +7,13 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Button Content="Load file" HorizontalAlignment="Left" Height="75" Margin="337,186,0,0" VerticalAlignment="Top" Width="170" Click="Button_Click"/>
+        <Button x:Name="loadFIle" Content="Load file" HorizontalAlignment="Left" Height="23" Margin="446,51,0,0" VerticalAlignment="Top" Width="98" Click="LoadFIleButton_Click"/>
+        <TextBox x:Name="reportFIleTextBox" HorizontalAlignment="Left" Height="23" Margin="31,51,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="383"/>
+        <TextBox HorizontalAlignment="Left" Height="23" Margin="31,112,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="383"/>
+        <Button x:Name="extractButton" Content="Extract" HorizontalAlignment="Left" Margin="44,317,0,0" VerticalAlignment="Top" Width="206" Height="70" Click="Button_Click_1" IsEnabled="False"/>
+        <Label Content="Power BI Report filepath" HorizontalAlignment="Left" Margin="31,25,0,0" VerticalAlignment="Top"/>
+        <Label Content="Theme file path" HorizontalAlignment="Left" Margin="31,86,0,0" VerticalAlignment="Top"/>
+
 
     </Grid>
 </Window>

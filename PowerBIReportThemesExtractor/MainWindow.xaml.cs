@@ -25,16 +25,21 @@ namespace PowerBIReportThemesExtractor
     {
         public MainWindow()
         {
-            InitializeComponent();
-            
+            InitializeComponent();           
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void LoadFIleButton_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.ShowDialog();
             //dialog.Filter = "Power BI file (*.pbix)";
-            ThemeExtractor extractor = new ThemeExtractor(dialog.FileName);
+            reportFIleTextBox.Text = dialog.FileName;
+            extractButton.IsEnabled = true;           
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            ThemeExtractor extractor = new ThemeExtractor(reportFIleTextBox.Text);
         }
     }
 }
