@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -12,21 +13,28 @@ namespace PowerBIReportThemesExtractor.Extractor
     {
         private string originalFilePath;
         private string zipFilePath;
-        private string layoutFilePath;
 
         public ThemeExtractor(string originalFilePath)
         {
             this.originalFilePath = originalFilePath;
             this.zipFilePath = originalFilePath + ".zip";
-            this.layoutFilePath = Path.Combine(this.zipFilePath, "Report");
-            string text = ExtractJsonText();
         }
 
-        public String ExtractJsonText()
+        public void Extract()
         {
+            
+        }
+
+        private PowerBIReportThemesExtractor.Layout.Layout ExtractLayout()
+        {
+            if (File.Exists(this.zipFilePath))
+            {
+                return null;
+            }
+
             File.Copy(this.originalFilePath, this.zipFilePath);
             ZipArchive zip = ZipFile.Open(zipFilePath, ZipArchiveMode.Read);
-            string jsonText = null;
+            PowerBIReportThemesExtractor.Layout.Layout layout = null;
         
             foreach (ZipArchiveEntry entry in zip.Entries)
             {
@@ -34,16 +42,23 @@ namespace PowerBIReportThemesExtractor.Extractor
                 {
                     using (StreamReader sr = new StreamReader(entry.Open(), Encoding.Unicode, true))
                     {
-                        jsonText = sr.ReadToEnd();
+                        string jsonText = sr.ReadToEnd();
+                        layout = JsonConvert.DeserializeObject<PowerBIReportThemesExtractor.Layout.Layout>(jsonText);
                     }
                                          
                     break;
                 }
             }
+
             zip.Dispose();
             File.Delete(zipFilePath);
 
-            return jsonText;
+            return layout;
+        }
+
+        private string ExtractConfigs(PowerBIReportThemesExtractor.Layout.Layout layout)
+        {
+            return null;
         }
 
 

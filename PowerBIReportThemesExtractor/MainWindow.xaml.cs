@@ -40,6 +40,7 @@ namespace PowerBIReportThemesExtractor
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
             ThemeExtractor extractor = new ThemeExtractor(reportFIleTextBox.Text);
+            extractor.Extract();
         }
     }
 }
