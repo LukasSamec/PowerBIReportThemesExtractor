@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using PowerBIReportThemesExtractor.Config;
 using PowerBIReportThemesExtractor.Layout;
 using System;
 using System.Collections.Generic;
@@ -27,7 +28,7 @@ namespace PowerBIReportThemesExtractor.Extractor
         {
             ReportLayout layout = this.ExtractLayout();
             List<XmlDocument> visualConfigs = this.ExtractVisualConfigs(layout);
-            
+            VisualConfig config = this.GetVisualConfig(visualConfigs[0]);          
         }
 
         private ReportLayout ExtractLayout()
@@ -89,6 +90,51 @@ namespace PowerBIReportThemesExtractor.Extractor
             }
 
             return objectNames;
+        }
+
+        private List<string> ExtractVisualObjectsProperiesNames(XmlDocument document,string objectName)
+        {
+            List<string> objectNames = new List<string>();
+            XmlNodeList nodeList = document.SelectNodes("/Root/singleVisual/objects/"+objectName+"/properties/*");
+
+            foreach (XmlNode node in nodeList)
+            {
+                objectNames.Add(node.Name);
+            }
+
+            return objectNames;
+        }
+
+        private string ExtractVisualObjectsProperyValue(XmlDocument document,string objectName, string objectProperty)
+        {
+            return document.SelectSingleNode("/Root/singleVisual/objects/"+ objectName + "/properties/"+ objectProperty + "/expr/Literal/Value/text()").Value;
+        }
+
+        private VisualConfig GetVisualConfig(XmlDocument document)
+        {
+            string visualTypeName = this.ExtractVisualTypeName(document);
+            VisualConfig visualConfig = new VisualConfig(visualTypeName);
+
+            List<string> objectNames = ExtractVisualObjectsNames(document);
+
+            foreach (string objectName in objectNames)
+            {
+                VisualConfigObject configObject = new VisualConfigObject(objectName);
+
+                List<string> propertiesNames = this.ExtractVisualObjectsProperiesNames(document, objectName);
+                foreach (string propertyName in propertiesNames)
+                {
+                    string propertyValue = this.ExtractVisualObjectsProperyValue(document, objectName, propertyName);
+                    configObject.Properies.Add(new VisualConfigObjectProperty(propertyName, propertyValue));
+                }
+
+                visualConfig.VisualConfigObjects.Add(configObject);                                         
+            }
+
+            return visualConfig;
+
+
+
         }
 
 

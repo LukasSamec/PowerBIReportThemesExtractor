@@ -11,8 +11,10 @@ namespace PowerBIReportThemesExtractor.Config
         public VisualConfigObject(string configObjectName)
         {
             this.ConfigObjectName = configObjectName;
+            this.Properies = new List<VisualConfigObjectProperty>();
         }
 
         public string ConfigObjectName { get; set; }
+        public List<VisualConfigObjectProperty> Properies { get; set; }
     }
 }

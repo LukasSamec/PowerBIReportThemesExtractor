@@ -74,6 +74,7 @@
     </Compile>
     <Compile Include="Config\VisualConfig.cs" />
     <Compile Include="Config\VisualConfigObject.cs" />
+    <Compile Include="Config\VisualConfigObjectProperty.cs" />
     <Compile Include="Extractor\ThemeExtractor.cs" />
     <Compile Include="Layout\ReportLayout.cs" />
     <Compile Include="Layout\Sections.cs" />

@@ -8,10 +8,10 @@ namespace PowerBIReportThemesExtractor.Config
 {
     class VisualConfig
     {
-        public VisualConfig(string visualTypeName, List<VisualConfigObject> visualConfigObjects)
+        public VisualConfig(string visualTypeName)
         {
             this.VisualTypeName = visualTypeName;
-            this.VisualConfigObjects = visualConfigObjects;
+            this.VisualConfigObjects = new List<VisualConfigObject>();
         }
 
         public string VisualTypeName { get; set; }
