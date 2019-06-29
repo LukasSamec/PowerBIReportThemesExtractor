@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace PowerBIReportThemesExtractor.Layout
 {
-    class Layout
+    class ReportLayout
     {
         
-        public Layout(Sections[] sections)
+        public ReportLayout(Sections[] sections)
         {
             this.Sections = sections;
         }
 
-        Sections[] Sections { get; set; }
+        public Sections[] Sections { get; set; }
     }
 }

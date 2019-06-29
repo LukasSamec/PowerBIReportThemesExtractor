@@ -1,4 +1,6 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using PowerBIReportThemesExtractor.Layout;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,10 +8,11 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace PowerBIReportThemesExtractor.Extractor
 {
-    class ThemeExtractor
+    public class ThemeExtractor
     {
         private string originalFilePath;
         private string zipFilePath;
@@ -22,19 +25,17 @@ namespace PowerBIReportThemesExtractor.Extractor
 
         public void Extract()
         {
+            ReportLayout layout = this.ExtractLayout();
+            List<XmlDocument> visualConfigs = this.ExtractVisualConfigs(layout);
             
         }
 
-        private PowerBIReportThemesExtractor.Layout.Layout ExtractLayout()
+        private ReportLayout ExtractLayout()
         {
-            if (File.Exists(this.zipFilePath))
-            {
-                return null;
-            }
 
             File.Copy(this.originalFilePath, this.zipFilePath);
             ZipArchive zip = ZipFile.Open(zipFilePath, ZipArchiveMode.Read);
-            PowerBIReportThemesExtractor.Layout.Layout layout = null;
+            ReportLayout layout = null;
         
             foreach (ZipArchiveEntry entry in zip.Entries)
             {
@@ -43,7 +44,7 @@ namespace PowerBIReportThemesExtractor.Extractor
                     using (StreamReader sr = new StreamReader(entry.Open(), Encoding.Unicode, true))
                     {
                         string jsonText = sr.ReadToEnd();
-                        layout = JsonConvert.DeserializeObject<PowerBIReportThemesExtractor.Layout.Layout>(jsonText);
+                        layout = JsonConvert.DeserializeObject<ReportLayout>(jsonText);
                     }
                                          
                     break;
@@ -56,9 +57,38 @@ namespace PowerBIReportThemesExtractor.Extractor
             return layout;
         }
 
-        private string ExtractConfigs(PowerBIReportThemesExtractor.Layout.Layout layout)
+        private List<XmlDocument> ExtractVisualConfigs(ReportLayout layout)
         {
-            return null;
+            List<XmlDocument> configs = new List<XmlDocument>();
+
+            foreach (Sections section in layout.Sections)
+            {
+                foreach (VisualContainers container in section.VisualContainers)
+                {
+                    XmlDocument doc = JsonConvert.DeserializeXmlNode(container.Config,"Root");
+                    configs.Add(doc);
+                }
+            }
+
+            return configs;
+        }
+
+        private string ExtractVisualTypeName(XmlDocument document)
+        {
+            return document.SelectSingleNode("/Root/singleVisual/visualType/text()").Value;
+        }
+
+        private List<string> ExtractVisualObjectsNames(XmlDocument document)
+        {
+            List<string> objectNames = new List<string>();
+            XmlNodeList nodeList = document.SelectNodes("/Root/singleVisual/objects/*");
+
+            foreach (XmlNode node in nodeList)
+            {
+                objectNames.Add(node.Name);
+            }
+
+            return objectNames;
         }
 
 

@@ -72,8 +72,10 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Config\VisualConfig.cs" />
+    <Compile Include="Config\VisualConfigObject.cs" />
     <Compile Include="Extractor\ThemeExtractor.cs" />
-    <Compile Include="Layout\Layout.cs" />
+    <Compile Include="Layout\ReportLayout.cs" />
     <Compile Include="Layout\Sections.cs" />
     <Compile Include="Layout\VisualContainers.cs" />
     <Compile Include="MainWindow.xaml.cs">

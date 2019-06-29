@@ -14,6 +14,6 @@ namespace PowerBIReportThemesExtractor.Layout
             this.VisualContainers = visualContainers;
         }
 
-        VisualContainers[] VisualContainers { get; set; }
+        public VisualContainers[] VisualContainers { get; set; }
     }
 }
