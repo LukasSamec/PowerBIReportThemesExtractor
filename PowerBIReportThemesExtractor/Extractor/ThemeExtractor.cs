@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using PowerBIReportThemesExtractor.Config;
 using PowerBIReportThemesExtractor.Layout;
 using System;
@@ -9,6 +8,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Xml;
 
 namespace PowerBIReportThemesExtractor.Extractor
@@ -17,19 +17,38 @@ namespace PowerBIReportThemesExtractor.Extractor
     {
         private string originalFilePath;
         private string zipFilePath;
+        private string themePath;
+        private string themeName;
 
-        public ThemeExtractor(string originalFilePath)
+        public ThemeExtractor(string originalFilePath, string themePath)
         {
             this.originalFilePath = originalFilePath;
             this.zipFilePath = originalFilePath + ".zip";
+            this.themePath = themePath;
+            this.themeName = Path.GetFileNameWithoutExtension(themePath);
         }
 
         public void Extract()
         {
             ReportLayout layout = this.ExtractLayout();
-            List<XmlDocument> visualConfigs = this.ExtractVisualConfigs(layout);
-            VisualConfig config = this.GetVisualConfig(visualConfigs[0]);          
+            List<XmlDocument> visualConfigsXml = this.ExtractVisualConfigs(layout);
+            List<VisualConfig> visualConfigs = new List<VisualConfig>();
+
+            foreach (XmlDocument xmlDoc in visualConfigsXml)
+            {
+                VisualConfig config = this.GetVisualConfig(xmlDoc);
+                visualConfigs.Add(config);
+            }
+
+            string text = this.GetThemeText(visualConfigs);
+
+            File.WriteAllText(themePath, text);
+
+            MessageBox.Show("Theme was extracted successfully.","Success",MessageBoxButton.OK,MessageBoxImage.Information);
+            
         }
+
+        #region objects
 
         private ReportLayout ExtractLayout()
         {
@@ -58,6 +77,34 @@ namespace PowerBIReportThemesExtractor.Extractor
             return layout;
         }
 
+        private VisualConfig GetVisualConfig(XmlDocument document)
+        {
+            string visualTypeName = this.ExtractVisualTypeName(document);
+            VisualConfig visualConfig = new VisualConfig(visualTypeName);
+
+            List<string> objectNames = ExtractVisualObjectsNames(document);
+
+            foreach (string objectName in objectNames)
+            {
+                VisualConfigObject configObject = new VisualConfigObject(objectName);
+
+                List<string> propertiesNames = this.ExtractVisualObjectsProperiesNames(document, objectName);
+                foreach (string propertyName in propertiesNames)
+                {
+                    string propertyValue = this.ExtractVisualObjectsProperyValue(document, objectName, propertyName);
+                    configObject.Properies.Add(new VisualConfigObjectProperty(propertyName, propertyValue));
+                }
+
+                visualConfig.VisualConfigObjects.Add(configObject);
+            }
+
+            return visualConfig;
+        }
+
+        #endregion objects
+
+        #region xml
+
         private List<XmlDocument> ExtractVisualConfigs(ReportLayout layout)
         {
             List<XmlDocument> configs = new List<XmlDocument>();
@@ -82,7 +129,7 @@ namespace PowerBIReportThemesExtractor.Extractor
         private List<string> ExtractVisualObjectsNames(XmlDocument document)
         {
             List<string> objectNames = new List<string>();
-            XmlNodeList nodeList = document.SelectNodes("/Root/singleVisual/objects/*");
+            XmlNodeList nodeList = document.SelectNodes("/Root/singleVisual/objects/* | /Root/singleVisual/vcObjects/*");
 
             foreach (XmlNode node in nodeList)
             {
@@ -95,7 +142,11 @@ namespace PowerBIReportThemesExtractor.Extractor
         private List<string> ExtractVisualObjectsProperiesNames(XmlDocument document,string objectName)
         {
             List<string> objectNames = new List<string>();
-            XmlNodeList nodeList = document.SelectNodes("/Root/singleVisual/objects/"+objectName+"/properties/*");
+            XmlNodeList nodeList = document.SelectNodes
+                (
+                "/Root/singleVisual/objects/"+objectName+ "/properties/* |" +
+                " /Root/singleVisual/vcObjects/" + objectName + "/properties/*"
+                );
 
             foreach (XmlNode node in nodeList)
             {
@@ -107,36 +158,79 @@ namespace PowerBIReportThemesExtractor.Extractor
 
         private string ExtractVisualObjectsProperyValue(XmlDocument document,string objectName, string objectProperty)
         {
-            return document.SelectSingleNode("/Root/singleVisual/objects/"+ objectName + "/properties/"+ objectProperty + "/expr/Literal/Value/text()").Value;
+            return document.SelectSingleNode
+                (
+                "/Root/singleVisual/objects/"+ objectName + "/properties/"+ objectProperty + "/expr/Literal/Value/text() |" +
+                "/Root/singleVisual/vcObjects/" + objectName + "/properties/" + objectProperty + "/expr/Literal/Value/text() |" +
+                "/Root/singleVisual/objects/" + objectName + "/properties/" + objectProperty + "/solid/color/expr/Literal/Value/text() |" +
+                "/Root/singleVisual/vcObjects/" + objectName + "/properties/" + objectProperty + "/solid/color/expr/Literal/Value/text()"
+                ).Value;
         }
 
-        private VisualConfig GetVisualConfig(XmlDocument document)
+        #endregion xml
+
+        private string GetThemeText(List<VisualConfig> configs)
         {
-            string visualTypeName = this.ExtractVisualTypeName(document);
-            VisualConfig visualConfig = new VisualConfig(visualTypeName);
+            string text = "";
 
-            List<string> objectNames = ExtractVisualObjectsNames(document);
-
-            foreach (string objectName in objectNames)
+            text += "{";
+            text += "\"name\": \"" + themeName + "\",";
+            text += "\"visualStyles\":";
+            text += "{";
+            for (int i = 0; i < configs.Count; i++)
             {
-                VisualConfigObject configObject = new VisualConfigObject(objectName);
-
-                List<string> propertiesNames = this.ExtractVisualObjectsProperiesNames(document, objectName);
-                foreach (string propertyName in propertiesNames)
-                {
-                    string propertyValue = this.ExtractVisualObjectsProperyValue(document, objectName, propertyName);
-                    configObject.Properies.Add(new VisualConfigObjectProperty(propertyName, propertyValue));
-                }
-
-                visualConfig.VisualConfigObjects.Add(configObject);                                         
+                text += this.GetConfigObjectText(configs[i]);
             }
 
-            return visualConfig;
+
+            text += "}";
+            text += "}";
 
 
-
+            return text;    
         }
 
+        private string GetConfigObjectText(VisualConfig config)
+        {
+            string text = "";
+            text += "\""+config.VisualTypeName+ "\":";
+            text += "{";
+            text += "\"*\":";
+            text += "{";
 
+            for (int i = 0; i < config.VisualConfigObjects.Count; i++)
+            {
+                text += "\""+config.VisualConfigObjects[i].ConfigObjectName+"\":";
+                text += "[{";
+
+                for (int j = 0; j < config.VisualConfigObjects[i].Properies.Count; j++)
+                {
+                    text += "\"" + config.VisualConfigObjects[i].Properies[j].PropertyName + "\":" + config.VisualConfigObjects[i].Properies[j].Value;
+                    if (j != config.VisualConfigObjects[i].Properies.Count -1 )
+                    {
+                        text += ",";
+                    }
+                   
+                }
+
+                text += "}]";
+
+                if (i != config.VisualConfigObjects.Count - 1)
+                {
+                    text += ",";
+                }
+                
+            }
+
+            text += "}";
+            text += "}";
+
+           
+
+            return text;
+        }
+
+       
+    
     }
 }
