@@ -1,13 +1,10 @@
 ﻿using Newtonsoft.Json;
 using PowerBIReportThemesExtractor.Config;
 using PowerBIReportThemesExtractor.Layout;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Xml;
 
@@ -52,7 +49,6 @@ namespace PowerBIReportThemesExtractor.Extractor
 
         private ReportLayout ExtractLayout()
         {
-
             File.Copy(this.originalFilePath, this.zipFilePath);
             ZipArchive zip = ZipFile.Open(zipFilePath, ZipArchiveMode.Read);
             ReportLayout layout = null;
@@ -169,6 +165,8 @@ namespace PowerBIReportThemesExtractor.Extractor
 
         #endregion xml
 
+        #region themeText
+
         private string GetThemeText(List<VisualConfig> configs)
         {
             string text = "";
@@ -180,12 +178,15 @@ namespace PowerBIReportThemesExtractor.Extractor
             for (int i = 0; i < configs.Count; i++)
             {
                 text += this.GetConfigObjectText(configs[i]);
+
+                if (i != configs.Count - 1)
+                {
+                    text += ",";
+                }
             }
 
-
             text += "}";
             text += "}";
-
 
             return text;    
         }
@@ -205,12 +206,19 @@ namespace PowerBIReportThemesExtractor.Extractor
 
                 for (int j = 0; j < config.VisualConfigObjects[i].Properies.Count; j++)
                 {
-                    text += "\"" + config.VisualConfigObjects[i].Properies[j].PropertyName + "\":" + config.VisualConfigObjects[i].Properies[j].Value;
-                    if (j != config.VisualConfigObjects[i].Properies.Count -1 )
+                    if (config.VisualConfigObjects[i].Properies[j].PropertyName.ToLower().Contains("color"))
                     {
-                        text += ",";
+                        text += "\"" + config.VisualConfigObjects[i].Properies[j].PropertyName + "\":" + "{ \"solid\": { \"color\":" + config.VisualConfigObjects[i].Properies[j].Value + "} }";
+                    }
+                    else
+                    {
+                        text += "\"" + config.VisualConfigObjects[i].Properies[j].PropertyName + "\":" + config.VisualConfigObjects[i].Properies[j].Value;
                     }
                    
+                    if (j != config.VisualConfigObjects[i].Properies.Count - 1 )
+                    {
+                        text += ",";
+                    }                 
                 }
 
                 text += "}]";
@@ -218,19 +226,16 @@ namespace PowerBIReportThemesExtractor.Extractor
                 if (i != config.VisualConfigObjects.Count - 1)
                 {
                     text += ",";
-                }
-                
+                }               
             }
 
             text += "}";
             text += "}";
-
-           
-
+          
             return text;
         }
 
-       
-    
+        #endregion themeText
+
     }
 }
