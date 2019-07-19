@@ -41,7 +41,7 @@ namespace PowerBIReportThemesExtractor.Extractor
 
             File.WriteAllText(themePath, text);
 
-            MessageBox.Show("Theme was extracted successfully.","Success",MessageBoxButton.OK,MessageBoxImage.Information);
+            MessageBox.Show("Theme has been successfully extracted to: " + themePath,"Success",MessageBoxButton.OK,MessageBoxImage.Information);
             
         }
 
@@ -87,7 +87,7 @@ namespace PowerBIReportThemesExtractor.Extractor
                 List<string> propertiesNames = this.ExtractVisualObjectsProperiesNames(document, objectName);
                 foreach (string propertyName in propertiesNames)
                 {
-                    string propertyValue = this.ExtractVisualObjectsProperyValue(document, objectName, propertyName);
+                    string propertyValue = this.ExtractVisualObjectsProperyValue(document, objectName, propertyName, visualTypeName);
                     configObject.Properies.Add(new VisualConfigObjectProperty(propertyName, propertyValue));
                 }
 
@@ -152,15 +152,28 @@ namespace PowerBIReportThemesExtractor.Extractor
             return objectNames;
         }
 
-        private string ExtractVisualObjectsProperyValue(XmlDocument document,string objectName, string objectProperty)
+        private string ExtractVisualObjectsProperyValue(XmlDocument document, string objectName, string objectProperty, string visualTypeName)
         {
-            return document.SelectSingleNode
-                (
-                "/Root/singleVisual/objects/"+ objectName + "/properties/"+ objectProperty + "/expr/Literal/Value/text() |" +
-                "/Root/singleVisual/vcObjects/" + objectName + "/properties/" + objectProperty + "/expr/Literal/Value/text() |" +
-                "/Root/singleVisual/objects/" + objectName + "/properties/" + objectProperty + "/solid/color/expr/Literal/Value/text() |" +
-                "/Root/singleVisual/vcObjects/" + objectName + "/properties/" + objectProperty + "/solid/color/expr/Literal/Value/text()"
-                ).Value;
+            XmlNode node = null;
+
+            if (objectProperty.ToLower().Contains("color"))
+            {
+                node = document.SelectSingleNode("/Root/singleVisual/objects/" + objectName + "/properties/" + objectProperty + "/solid/color/expr/ThemeDataColor/text() |" + "/Root/singleVisual/vcObjects/" + objectName + "/properties/" + objectProperty + "/solid/color/expr/ThemeDataColor/text()");
+
+                if (node == null)
+                {
+                    string defaultColor = "\"" + System.Configuration.ConfigurationManager.AppSettings["DefaultColorValue"] + "\"";
+                    MessageBox.Show(string.Format("Color in {0} - {1} - {2} is not defined by hex code. The color will by set by default color value {3}", visualTypeName, objectName, objectProperty, defaultColor), "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return defaultColor;
+                }
+                return node.Value;
+
+            }
+
+            node = document.SelectSingleNode("/Root/singleVisual/objects/" + objectName + "/properties/" + objectProperty + "/expr/Literal/Value/text() |" +
+                "/Root/singleVisual/vcObjects/" + objectName + "/properties/" + objectProperty + "/expr/Literal/Value/text()");
+
+            return node.Value;
         }
 
         #endregion xml

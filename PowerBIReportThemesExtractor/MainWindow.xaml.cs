@@ -20,8 +20,8 @@ namespace PowerBIReportThemesExtractor
         private void LoadReportFileButton_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog dialog = new OpenFileDialog();
-            dialog.ShowDialog();
-            dialog.Filter = "Power BI file (*.pbix) | *.pbix";
+            dialog.Filter = "Power BI file (*.pbix) | *.pbix|Power BI template file (*.pbit)|*.pbit";
+            dialog.ShowDialog();                  
             reportFileTextBox.Text = dialog.FileName;           
         }
 
@@ -29,7 +29,7 @@ namespace PowerBIReportThemesExtractor
         {
             if (String.IsNullOrEmpty(reportFileTextBox.Text) && String.IsNullOrEmpty(themeFileTextBox.Text))
             {
-                MessageBox.Show("Please, insert path to PowerBI report file and path to extracted theme", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please, specify path to PowerBI file and path to theme", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
             ThemeExtractor extractor = new ThemeExtractor(reportFileTextBox.Text, themeFileTextBox.Text);
