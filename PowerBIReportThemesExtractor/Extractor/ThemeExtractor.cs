@@ -4,6 +4,7 @@ using PowerBIReportThemesExtractor.Layout;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Xml;
@@ -37,7 +38,14 @@ namespace PowerBIReportThemesExtractor.Extractor
                 visualConfigs.Add(config);
             }
 
-            string text = this.GetThemeText(visualConfigs);
+            List<VisualConfig> uniqueVisualConfigs = visualConfigs.GroupBy(p => p.VisualTypeName).Select(g => g.First()).ToList();
+
+            if (visualConfigs.Count != uniqueVisualConfigs.Count)
+            {
+                MessageBox.Show("More visuals of the same type has been found. The program will extract one visual of every type in report.", "More visuals of the same type", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+
+            string text = this.GetThemeText(uniqueVisualConfigs);
 
             File.WriteAllText(themePath, text);
 
