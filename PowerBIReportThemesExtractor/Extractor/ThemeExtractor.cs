@@ -17,13 +17,15 @@ namespace PowerBIReportThemesExtractor.Extractor
         private string zipFilePath;
         private string themePath;
         private string themeName;
+        private string defaultColor;
 
-        public ThemeExtractor(string originalFilePath, string themePath)
+        public ThemeExtractor(string originalFilePath, string themePath, string defaultColor)
         {
             this.originalFilePath = originalFilePath;
             this.zipFilePath = originalFilePath + ".zip";
             this.themePath = themePath;
             this.themeName = Path.GetFileNameWithoutExtension(themePath);
+            this.defaultColor = defaultColor;
         }
 
         public void Extract()
@@ -170,9 +172,9 @@ namespace PowerBIReportThemesExtractor.Extractor
 
                 if (node == null)
                 {
-                    string defaultColor = "\"" + System.Configuration.ConfigurationManager.AppSettings["DefaultColorValue"] + "\"";
+                    string color = "\"" + defaultColor + "\"";
                     MessageBox.Show(string.Format("Color in {0} - {1} - {2} is not defined by hex code. The color will by set by default color value {3}", visualTypeName, objectName, objectProperty, defaultColor), "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return defaultColor;
+                    return color;
                 }
                 return node.Value;
 

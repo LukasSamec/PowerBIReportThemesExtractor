@@ -1,8 +1,8 @@
-﻿using Microsoft.Win32;
-using PowerBIReportThemesExtractor.Extractor;
+﻿using PowerBIReportThemesExtractor.Extractor;
 using System;
+using System.Drawing;
 using System.Windows;
-
+using System.Windows.Forms;
 
 namespace PowerBIReportThemesExtractor
 {
@@ -29,10 +29,10 @@ namespace PowerBIReportThemesExtractor
         {
             if (String.IsNullOrEmpty(reportFileTextBox.Text) && String.IsNullOrEmpty(themeFileTextBox.Text))
             {
-                MessageBox.Show("Please, specify path to PowerBI file and path to theme", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                System.Windows.MessageBox.Show("Please, specify path to PowerBI file and path to theme", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-            ThemeExtractor extractor = new ThemeExtractor(reportFileTextBox.Text, themeFileTextBox.Text);
+            ThemeExtractor extractor = new ThemeExtractor(reportFileTextBox.Text, themeFileTextBox.Text, colorTextBox.Text);
             extractor.Extract();            
         }
 
@@ -47,7 +47,19 @@ namespace PowerBIReportThemesExtractor
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             Exception ex = (Exception)e.ExceptionObject;
-            MessageBox.Show(ex.Message, "Error",MessageBoxButton.OK,MessageBoxImage.Error);
+            System.Windows.MessageBox.Show(ex.Message, "Error",MessageBoxButton.OK,MessageBoxImage.Error);
+        }
+
+        private void ChooseColor_Click(object sender, RoutedEventArgs e)
+        {
+            ColorDialog dialog = new ColorDialog();
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                Color color = dialog.Color;
+                String code = (color.ToArgb() & 0x00FFFFFF).ToString("X6");
+                colorTextBox.Text = "#"+code;
+                colorRectangle.Fill = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(color.R,color.G,color.B));
+            }
         }
     }
 }
